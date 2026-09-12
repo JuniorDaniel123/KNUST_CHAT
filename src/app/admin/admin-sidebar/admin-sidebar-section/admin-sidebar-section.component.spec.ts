@@ -1,0 +1,121 @@
+import { Component } from '@angular/core';
+import {
+  ComponentFixture,
+  TestBed,
+  waitForAsync,
+} from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+import { CSSVariableServiceStub } from '@dspace/core/testing/css-variable-service.stub';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { MenuService } from '../../../shared/menu/menu.service';
+import { MenuSection } from '../../../shared/menu/menu-section.model';
+import { MenuServiceStub } from '../../../shared/menu/menu-service.stub';
+import { CSSVariableService } from '../../../shared/sass-helper/css-variable.service';
+import { getMockThemeService } from '../../../shared/theme-support/test/theme-service.mock';
+import { ThemeService } from '../../../shared/theme-support/theme.service';
+import { AdminSidebarSectionComponent } from './admin-sidebar-section.component';
+
+describe('AdminSidebarSectionComponent', () => {
+  let component: AdminSidebarSectionComponent;
+  let fixture: ComponentFixture<AdminSidebarSectionComponent>;
+  const menuService = new MenuServiceStub();
+  const iconString = 'test';
+
+  describe('when not disabled', () => {
+
+    beforeEach(waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, RouterModule.forRoot([]), TranslateModule.forRoot(), AdminSidebarSectionComponent, TestComponent],
+        providers: [
+          { provide: MenuService, useValue: menuService },
+          { provide: CSSVariableService, useClass: CSSVariableServiceStub },
+          { provide: ThemeService, useValue: getMockThemeService() },
+        ],
+      }).compileComponents();
+    }));
+
+    beforeEach(() => {
+      fixture = TestBed.createComponent(AdminSidebarSectionComponent);
+      component = fixture.componentInstance;
+      component.section = {
+        model: {
+          link: 'google.com',
+        },
+        icon: iconString,
+      } as MenuSection;
+      component.itemModel = component.section.model;
+      spyOn(component, 'getMenuItemComponent').and.returnValue(Promise.resolve(TestComponent));
+      fixture.detectChanges();
+    });
+
+    it('should create', () => {
+      expect(component).toBeTruthy();
+    });
+
+    it('should set the right icon', () => {
+      const icon = fixture.debugElement.query(By.css('[data-test="sidebar-section-icon"]')).query(By.css('i.fas'));
+      expect(icon.nativeElement.getAttribute('class')).toContain('fa-' + iconString);
+    });
+    it('should not contain the disabled class', () => {
+      const disabled = fixture.debugElement.query(By.css('.disabled'));
+      expect(disabled).toBeFalsy();
+    });
+
+  });
+  describe('when disabled', () => {
+
+    beforeEach(waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, RouterModule.forRoot([]), TranslateModule.forRoot(), AdminSidebarSectionComponent, TestComponent],
+        providers: [
+          { provide: MenuService, useValue: menuService },
+          { provide: CSSVariableService, useClass: CSSVariableServiceStub },
+          { provide: ThemeService, useValue: getMockThemeService() },
+        ],
+      }).compileComponents();
+    }));
+
+    beforeEach(() => {
+      fixture = TestBed.createComponent(AdminSidebarSectionComponent);
+      component = fixture.componentInstance;
+      component.section = {
+        model: {
+          link: 'google.com',
+          disabled: true,
+        },
+        icon: iconString,
+      } as MenuSection;
+      component.itemModel = component.section.model;
+      spyOn(component, 'getMenuItemComponent').and.returnValue(Promise.resolve(TestComponent));
+      fixture.detectChanges();
+    });
+
+    it('should create', () => {
+      expect(component).toBeTruthy();
+    });
+
+    it('should set the right icon', () => {
+      const icon = fixture.debugElement.query(By.css('[data-test="sidebar-section-icon"]')).query(By.css('i.fas'));
+      expect(icon.nativeElement.getAttribute('class')).toContain('fa-' + iconString);
+    });
+    it('should contain the disabled class', () => {
+      const disabled = fixture.debugElement.query(By.css('.disabled'));
+      expect(disabled).toBeTruthy();
+    });
+  });
+
+});
+
+// declare a test component
+@Component({
+  selector: 'ds-test-cmp',
+  template: ``,
+  imports: [
+    RouterModule,
+  ],
+})
+class TestComponent {
+}

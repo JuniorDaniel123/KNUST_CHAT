@@ -1,0 +1,6 @@
+<div class="ds-menu-item-wrapper text-md-center"
+     [id]="'navbar-section-' + section.id">
+  @if (sectionMap().get(section.id); as sectionDTO) {
+    <ng-container *ngComponentOutlet="sectionDTO.component; injector: sectionDTO.injector;"></ng-container>
+  }
+</div>

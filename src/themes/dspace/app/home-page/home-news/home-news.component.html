@@ -1,0 +1,35 @@
+<div class="background-image-container mt-ncs">
+  <div class="container">
+    <div class="home-news-content py-4 px-2 py-sm-5 px-sm-0 mt-0 mb-4">
+      @if (homeNewsMetadataValue$ | async; as homeNewsMetadataValue) {
+        <div class="container">
+          <div class="jumbotron jumbotron-fluid">
+            <ds-markdown-viewer [value]="homeNewsMetadataValue"></ds-markdown-viewer>
+          </div>
+        </div>
+      }
+      @else {
+        <div class="d-flex flex-wrap">
+          <div>
+            <h1 class="display-2">KNUST SPACE</h1>
+            
+          </div>
+          <div>
+            <ul>
+            
+            </ul>
+            
+            <ul>
+              
+            </ul>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <picture class="background-image">
+    <source type="image/jpg" srcset="assets/dspace/images/banner2.jpg 2000w, assets/dspace/images/banner2.jpg 1600w, assets/dspace/images/banner2.jpg 768w">
+    <source type="image/jpg" srcset="assets/dspace/images/banner2.jpg 2000w, assets/dspace/images/banner2.jpg 1600w, assets/dspace/images/banner2.jpg 768w">
+    <img alt="" [src]="'assets/dspace/images/banner2.jpg'"/><!-- without the []="''" Firefox downloads both the fallback and the resolved image -->
+  </picture>
+</div>

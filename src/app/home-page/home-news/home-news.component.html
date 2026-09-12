@@ -1,0 +1,25 @@
+<div class="home-news-content py-4 px-2 py-sm-5 px-sm-0 mt-ncs mb-4">
+  @if (homeNewsMetadataValue$ | async; as homeNewsMetadataValue) {
+    <div class="container">
+      <div class="jumbotron jumbotron-fluid">
+        <ds-markdown-viewer [value]="homeNewsMetadataValue"></ds-markdown-viewer>
+      </div>
+    </div>
+  }
+  @else {
+    <div class="container">
+      <div class="d-flex flex-wrap">
+        <div>
+          <h1 class="display-2">KNUST DSpace</h1>
+          <p class="lead">DSpace is the world leading open source repository platform. </p>
+        </div>
+      </div>
+      <ul>
+      
+     </ul>
+      <p>Join an international community of <a href="https://wiki.lyrasis.org/display/DSPACE/DSpace+Positioning"
+          target="_blank" role="link" tabindex="0">leading institutions using DSpace</a>.
+      </p>
+    </div>
+  }
+</div>

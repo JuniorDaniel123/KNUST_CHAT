@@ -1,0 +1,50 @@
+import { AsyncPipe } from '@angular/common';
+import {
+  Component,
+  OnInit,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { EntityTypeDataService } from '@dspace/core/data/entity-type-data.service';
+import { ItemType } from '@dspace/core/shared/item-relationships/item-type.model';
+import { getFirstSucceededRemoteListPayload } from '@dspace/core/shared/operators';
+import { TranslateModule } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+
+import { AbstractDsoEditMetadataValueFieldComponent } from '../abstract-dso-edit-metadata-value-field.component';
+import { EditMetadataValueFieldType } from '../dso-edit-metadata-field-type.enum';
+import { editMetadataValueFieldComponent } from '../dso-edit-metadata-value-field-loader/dso-edit-metadata-value-field.decorator';
+
+/**
+ * The component used to gather input for entity-type metadata fields
+ */
+@Component({
+  selector: 'ds-dso-edit-metadata-entity-field',
+  templateUrl: './dso-edit-metadata-entity-field.component.html',
+  styleUrls: ['./dso-edit-metadata-entity-field.component.scss'],
+  imports: [
+    AsyncPipe,
+    FormsModule,
+    TranslateModule,
+  ],
+})
+@editMetadataValueFieldComponent(EditMetadataValueFieldType.ENTITY_TYPE)
+export class DsoEditMetadataEntityFieldComponent extends AbstractDsoEditMetadataValueFieldComponent implements OnInit {
+
+  /**
+   * List of all the existing entity types
+   */
+  entities$: Observable<ItemType[]>;
+
+  constructor(
+    protected entityTypeService: EntityTypeDataService,
+  ) {
+    super();
+  }
+
+  ngOnInit(): void {
+    this.entities$ = this.entityTypeService.findAll({ elementsPerPage: 100, currentPage: 1 }).pipe(
+      getFirstSucceededRemoteListPayload(),
+    );
+  }
+
+}

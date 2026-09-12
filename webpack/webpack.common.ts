@@ -1,0 +1,126 @@
+import { join } from 'node:path';
+
+import { parse } from 'json5';
+import { EnvironmentPlugin } from 'webpack';
+
+import {
+  calculateFileHash,
+  getFileHashes,
+  globalCSSImports,
+  projectRoot,
+} from './helpers';
+import { GenerateDecoratorRegistriesPlugin } from './plugins/generate-decorator-registries.plugin';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+export const copyWebpackOptions = {
+  patterns: [
+    {
+      from: join(__dirname, '..', 'node_modules', '@fortawesome', 'fontawesome-free', 'webfonts'),
+      to: join('assets', 'fonts'),
+      force: undefined,
+    },
+    {
+      from: join(__dirname, '..', 'src', 'assets', '**', '*.json5').replace(/\\/g, '/'),
+      to({ absoluteFilename }) {
+        // use [\/|\\] to match both POSIX and Windows separators
+        const matches = absoluteFilename.match(/.*[\/|\\]assets[\/|\\](.+)\.json5$/);
+        if (matches) {
+          const fileHash: string = process.env.NODE_ENV === 'production' ? `.${calculateFileHash(absoluteFilename)}` : '';
+          // matches[1] is the relative path from src/assets to the JSON5 file, without the extension
+          return join('assets', `${matches[1]}${fileHash}.json`);
+        }
+      },
+      transform(content) {
+        return JSON.stringify(parse(content.toString()));
+      },
+    },
+    {
+      from: join(__dirname, '..', 'src', 'assets'),
+      to: 'assets',
+    },
+    {
+      // replace(/\\/g, '/') because glob patterns need forward slashes, even on windows:
+      // https://github.com/mrmlnc/fast-glob#how-to-write-patterns-on-windows
+      from: join(__dirname, '..', 'src', 'themes', '*', 'assets', '**', '*').replace(/\\/g, '/'),
+      noErrorOnMissing: true,
+      to({ absoluteFilename }) {
+        // use [\/|\\] to match both POSIX and Windows separators
+        const matches = absoluteFilename.match(/.*[\/|\\]themes[\/|\\]([^\/|^\\]+)[\/|\\]assets[\/|\\](.+)$/);
+        if (matches) {
+          // matches[1] is the theme name
+          // matches[2] is the rest of the path relative to the assets folder
+          // e.g. themes/custom/assets/images/logo.png will end up in assets/custom/images/logo.png
+          return join('assets', matches[1], matches[2]);
+        }
+      },
+    },
+    {
+      from: join(__dirname, '..', 'src', 'robots.txt.ejs'),
+      to: 'assets/robots.txt.ejs',
+    },
+  ],
+};
+
+const SCSS_LOADERS = [
+  {
+    loader: 'postcss-loader',
+    options: {
+      sourceMap: true,
+    },
+  },
+  {
+    loader: 'sass-loader',
+    options: {
+      sourceMap: true,
+      sassOptions: {
+        includePaths: [projectRoot('./')],
+      },
+    },
+  },
+];
+
+export const commonExports = {
+  plugins: [
+    new GenerateDecoratorRegistriesPlugin(),
+    new EnvironmentPlugin({
+      languageHashes: getFileHashes(join(__dirname, '..', 'src', 'assets', 'i18n'), /.*\.json5/g),
+    }),
+    new CopyWebpackPlugin(copyWebpackOptions),
+  ],
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        loader: '@ngtools/webpack',
+      },
+      {
+        test: /\.scss$/,
+        exclude: [
+          /node_modules/,
+          /(_exposed)?_variables.scss$|[\/|\\]src[\/|\\]themes[\/|\\].+?[\/|\\]styles[\/|\\].+\.scss$/,
+        ],
+        use: [
+          ...SCSS_LOADERS,
+          {
+            loader: 'sass-resources-loader',
+            options: {
+              resources: globalCSSImports(),
+            },
+          },
+        ],
+      },
+      {
+        test: /(_exposed)?_variables.scss$|[\/|\\]src[\/|\\]themes[\/|\\].+?[\/|\\]styles[\/|\\].+\.scss$/,
+        exclude: [/node_modules/],
+        use: [
+          ...SCSS_LOADERS,
+        ],
+      },
+    ],
+  },
+  ignoreWarnings: [
+    /src\/themes\/[^/]+\/.*theme.module.ts is part of the TypeScript compilation but it's unused/,
+  ],
+};

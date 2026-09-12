@@ -1,0 +1,4 @@
+@if (authMethodComponent$ | async; as authMethodComponent) {
+  <ng-container *ngComponentOutlet="authMethodComponent; injector: objectInjector;">
+  </ng-container>
+}
